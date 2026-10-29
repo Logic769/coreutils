@@ -177,10 +177,12 @@ fn replace_special_chars(s: &[u8]) -> Vec<u8> {
     //
     // * ASCII space with a regular space character,
     // * \011 ASCII horizontal tab with a tab character,
+    // * \012 ASCII newline with a newline character.
     // * ASCII backslash with an actual backslash character.
     //
     s.replace(r"\040", " ")
         .replace(r"\011", "	")
+        .replace(r"\012", "\n")
         .replace(r"\134", r"\")
 }
 
@@ -924,6 +926,12 @@ pub fn pretty_fstype<'a>(fstype: i64) -> Cow<'a, str> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    #[cfg(any(target_os = "linux", target_os = "android", target_os = "cygwin"))]
+    fn test_replace_special_chars_decodes_newline() {
+        assert_eq!(replace_special_chars(b"usb\\012stick"), b"usb\nstick");
+    }
 
     #[test]
     #[cfg(unix)]
